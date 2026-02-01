@@ -1,0 +1,10 @@
+# Ignorar el entorno virtual (es muy pesado y se recrea solo)
+.venv/
+venv/
+__pycache__/
+
+# ¡SEGURIDAD CRÍTICA! Nunca subir las claves
+.env
+
+# Archivos del editor
+.idea/
