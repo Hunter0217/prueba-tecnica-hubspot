@@ -1,35 +1,69 @@
-# Integración con HubSpot API (Prueba Técnica)
+#  Microservicio de Integración CRM (HubSpot)
 
-Este proyecto implementa un microservicio con FastAPI que permite crear contactos en HubSpot CRM de forma segura y validada.
+Este proyecto implementa una solución backend robusta y escalable para la **gestión centralizada de contactos**.
 
-## Tecnologías
+###  Problema que resuelve
+En entornos empresariales distribuidos, la creación de prospectos (leads) suele ser inconsistente e insegura. Este microservicio actúa como una **puerta de enlace validada** entre los clientes externos y el CRM de HubSpot, asegurando que:
+1.  No se inserten datos "basura" en el CRM (Validación estricta).
+2.  Las credenciales sensibles del CRM no queden expuestas al frontend (Seguridad).
+3.  Exista un punto único de entrada para auditar la creación de contactos.
 
-* **Python 3.13**
-* **FastAPI:** Para la creación del API REST.
-* **Pydantic:** Para validación de datos y manejo de configuración (.env).
-* **Requests:** Para la comunicación con la API externa de HubSpot.
+---
 
-## Instalación y Configuración
+##  Decisiones Técnicas y Arquitectura
 
-1.  **Clonar o descargar el proyecto.**
-2.  **Crear entorno virtual** (si no lo hace el IDE automáticamente):
-    ```bash
-    python -m venv .venv
-    ```
-3.  **Instalar dependencias:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-4.  **Configurar Variables de Entorno:**
-    * Crear un archivo `.env` en la raíz del proyecto.
-    * Agregar el token de HubSpot:
-        ```env
-        HUBSPOT_ACCESS_TOKEN=tu_token_aqui
-        ```
+Se ha optado por una **Arquitectura en Capas** (Controller-Service-Model) para garantizar el principio de responsabilidad única (SRP).
 
-##  Ejecución
+### Tecnologías Clave
+* **Python 3.13 + FastAPI:** Elegido por su alto rendimiento (asincronía) y su capacidad de generar documentación automática (OpenAPI), reduciendo el tiempo de desarrollo.
+* **Pydantic:** Utilizado para la **integridad de datos**. A diferencia de una validación manual con `if/else`, Pydantic asegura que los datos cumplan estrictamente con los contratos de interfaz antes de procesarlos.
+* **Pydantic-Settings:** Para la gestión de configuración. Permite adherirse a los principios de **The Twelve-Factor App**, separando estrictamente la configuración (credenciales) del código fuente.
+* **Requests:** Para la comunicación HTTP síncrona y fiable con la API de HubSpot.
 
-Para iniciar el servidor de desarrollo:
+---
 
-```bash
-uvicorn app.main:app --reload
+##  Guía de Uso (API Reference)
+
+### 1. Crear un Contacto (POST)
+Permite registrar un nuevo prospecto. El sistema validará que el email tenga formato correcto y los campos no estén vacíos.
+
+**Endpoint:** POST /crm/v3/objects/contacts
+
+**Ejemplo de Petición (Request):**
+```json
+{
+  "email": "nuevo_cliente@empresa.com",
+  "firstname": "Ana",
+  "lastname": "García"
+}
+```
+
+### 2. Consultar Contactos (GET)
+Obtiene los contactos más recientes almacenados en el CRM, filtrando la respuesta para entregar solo la información relevante para el negocio (email, nombre, fecha de creación).
+
+**Endpoint:** `GET /crm/v3/objects/contacts`
+
+**Respuesta Exitosa (200 OK):**
+```json
+{
+  "results": [
+    {
+      "id": "123456",
+      "properties": {
+        "email": "cliente@ejemplo.com",
+        "firstname": "Juan",
+        "lastname": "Pérez",
+        "createdate": "2026-01-31T10:00:00Z"
+      }
+    },
+    {
+      "id": "789012",
+      "properties": {
+        "email": "maria.gomez@test.com",
+        "firstname": "Maria",
+        "lastname": "Gomez",
+        "createdate": "2026-02-01T14:30:00Z"
+      }
+    }
+  ]
+}
